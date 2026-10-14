@@ -208,7 +208,15 @@ void Ngs2SetupReverb(Ngs2Voice& voice);
 void Ngs2ClearReverb(Ngs2Voice& voice);
 bool Ngs2ProcessReverb(Ngs2Voice& voice, std::uint32_t grain, std::uint32_t sampleRate);
 void Ngs2ProcessLegacyUserFx(Ngs2Voice& voice, std::uint32_t grain, std::uint32_t sampleRate);
-void Ngs2RenderSystem(Ngs2System& system, const Ngs2RenderBufferInfo* bufferInfo, std::uint32_t numBufferInfo);
+struct Ngs2RenderTimes {
+    double process;
+    double flush;
+};
+
+Ngs2RenderTimes Ngs2RenderSystem(Ngs2System& system, const Ngs2RenderBufferInfo* bufferInfo, std::uint32_t numBufferInfo);
+void Ngs2ReportCpuLoad(Ngs2Handle system, const Ngs2RenderTimes& times, std::uint32_t grain, std::uint32_t sampleRate);
+Ngs2Handle Ngs2AddReport(std::uint32_t type, Ngs2ReportHandler handler, std::uintptr_t userData);
+bool Ngs2RemoveReport(Ngs2Handle handle);
 float Ngs2DefaultLevel(std::uint32_t sourceChannels, std::uint32_t source, std::uint32_t destChannels, std::uint32_t dest);
 int Ngs2PanInit(Ngs2PanWork* work, const float* speaker_angles, float unit_angle, uint32_t num_speakers);
 int Ngs2PanGetVolumeMatrix(Ngs2PanWork* work, const Ngs2PanParam* params, uint32_t num_params, uint32_t matrix_format, float* out_volume_matrix);

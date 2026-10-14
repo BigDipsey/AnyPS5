@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -289,7 +290,9 @@ static void WriteOutput(const Ngs2RenderBufferInfo& output, const std::vector<fl
     }
 }
 
-void Ngs2RenderSystem(Ngs2System& system, const Ngs2RenderBufferInfo* bufferInfo, std::uint32_t numBufferInfo) {
+Ngs2RenderTimes Ngs2RenderSystem(Ngs2System& system, const Ngs2RenderBufferInfo* bufferInfo, std::uint32_t numBufferInfo) {
+    using Clock = std::chrono::steady_clock;
+    const auto start = Clock::now();
     const auto grain = system.option.num_grain_samples;
     std::vector<std::size_t> outputBytes(numBufferInfo);
     for (std::uint32_t i = 0; i < numBufferInfo; i++) {
@@ -320,14 +323,17 @@ void Ngs2RenderSystem(Ngs2System& system, const Ngs2RenderBufferInfo* bufferInfo
             for (std::uint32_t i = 0; i < grain; i++) mix[i * outputChannels + channel] += voice->samples[channel * grain + i] * level;
         }
     }
+    const auto processed = Clock::now();
     for (std::uint32_t i = 0; i < numBufferInfo; i++) {
         if (!mixes[i].empty()) WriteOutput(bufferInfo[i], mixes[i]);
         else if (outputBytes[i] != 0) std::memset(bufferInfo[i].buffer, 0, outputBytes[i]);
     }
+    const auto flushed = Clock::now();
     for (auto* voice : voices) {
         if (voice->state == Ngs2PlayState::Stopped) voice->state = Ngs2PlayState::Empty;
         voice->stateFlags = static_cast<std::uint32_t>(voice->state);
         if (voice->state == Ngs2PlayState::Playing && voice->rack->rackId == SCE_NGS2_RACK_ID_SAMPLER && voice->blocks.empty() && voice->acceptsBlocks) voice->stateFlags |= SCE_NGS2_VOICE_STATE_FLAG_EMPTY;
     }
     system.renderCount++;
+    return {std::chrono::duration<double>(processed - start).count(), std::chrono::duration<double>(flushed - processed).count()};
 }

@@ -7,6 +7,7 @@ function(add_sce_ngs2_library target)
             ${ngs2Dir}/src/Pan.cpp
             ${ngs2Dir}/src/Rack.cpp
             ${ngs2Dir}/src/Render.cpp
+            ${ngs2Dir}/src/Report.cpp
             ${ngs2Dir}/src/Reverb.cpp
             ${ngs2Dir}/src/System.cpp
             ${ngs2Dir}/src/Unimplemented.cpp

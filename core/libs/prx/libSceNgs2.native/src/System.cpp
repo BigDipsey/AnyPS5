@@ -241,8 +241,23 @@ int APS5_VABI sceNgs2SystemRender(uintptr_t system_handle, const Ngs2RenderBuffe
     auto* system = Ngs2FindSystem(system_handle);
     if (system == nullptr) return SCE_NGS2_ERROR_INVALID_SYSTEM_HANDLE;
     if (buffer_info == nullptr || num_buffer_info == 0) APS5_INVALID_ARG_EX;
-    Ngs2RenderSystem(*system, buffer_info, num_buffer_info);
+    const auto times = Ngs2RenderSystem(*system, buffer_info, num_buffer_info);
+    Ngs2ReportCpuLoad(system_handle, times, system->option.num_grain_samples, system->option.sample_rate);
     return SCE_NGS2_OK;
+}
+
+int APS5_VABI sceNgs2ReportRegisterHandler(uint32_t report_type, Ngs2ReportHandler handler, uintptr_t user_data, Ngs2Handle* out_handle) {
+    if (handler == nullptr) return SCE_NGS2_ERROR_INVALID_REPORT_HANDLER;
+    if (out_handle == nullptr) APS5_INVALID_ARG_EX;
+    if (report_type != SCE_NGS2_REPORT_TYPE_CPU_LOAD) {
+        NotImplemented_nid_no_patch(("sceNgs2ReportRegisterHandler: report type " + std::to_string(report_type)).c_str());
+    }
+    *out_handle = Ngs2AddReport(report_type, handler, user_data);
+    return SCE_NGS2_OK;
+}
+
+int APS5_VABI sceNgs2ReportUnregisterHandler(Ngs2Handle report_handle) {
+    return Ngs2RemoveReport(report_handle) ? SCE_NGS2_OK : SCE_NGS2_ERROR_INVALID_REPORT_HANDLE;
 }
 
 int APS5_VABI sceNgs2SystemResetOption(Ngs2SystemOption* option) {

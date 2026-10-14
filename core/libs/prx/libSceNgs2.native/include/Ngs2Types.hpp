@@ -15,6 +15,10 @@ static constexpr int SCE_NGS2_ERROR_INVALID_VOICE_INDEX = static_cast<int>(0x804
 static constexpr int SCE_NGS2_ERROR_INVALID_WAVEFORM_DATA = static_cast<int>(0x804A8430);
 static constexpr int SCE_NGS2_ERROR_INVALID_WAVEFORM_FORMAT = static_cast<int>(0x804A8431);
 static constexpr int SCE_NGS2_ERROR_UNKNOWN_WAVEFORM_FORMAT = static_cast<int>(0x804A8432);
+static constexpr int SCE_NGS2_ERROR_INVALID_REPORT_HANDLER = static_cast<int>(0x804A0203);
+static constexpr int SCE_NGS2_ERROR_INVALID_REPORT_HANDLE = static_cast<int>(0x804A0204);
+
+static constexpr std::uint32_t SCE_NGS2_REPORT_TYPE_CPU_LOAD = 5;
 
 static constexpr std::uint32_t SCE_NGS2_RACK_ID_SAMPLER = 0x1000;
 static constexpr std::uint32_t SCE_NGS2_RACK_ID_SUBMIXER = 0x2000;
@@ -83,6 +87,25 @@ static constexpr std::uint32_t SCE_NGS2_VOICE_CALLBACK_FLAG_BLOCK_END = 1;
 static constexpr std::uint32_t SCE_NGS2_VOICE_CALLBACK_FLAG_BLOCK_REPEAT = 2;
 
 using Ngs2Handle = std::uintptr_t;
+
+struct Ngs2ReportDataHeader {
+    std::size_t size;
+    Ngs2Handle handle;
+    std::uint32_t type;
+    std::int32_t result;
+};
+static_assert(sizeof(Ngs2ReportDataHeader) == 24);
+
+struct Ngs2ReportCpuLoadData {
+    Ngs2ReportDataHeader header;
+    float total_ratio;
+    float flush_ratio;
+    float process_ratio;
+    float feedback_ratio;
+};
+static_assert(sizeof(Ngs2ReportCpuLoadData) == 40);
+
+using Ngs2ReportHandler = void (APS5_VABI *)(const Ngs2ReportDataHeader* data, std::uintptr_t user_data);
 
 struct Ngs2ContextBufferInfo {
     void* host_buffer;
